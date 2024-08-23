@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exportar a CSV</title>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="section">
+    <label >Activity:</label>
+    <input type="text" id="Activity_Name" name="academic">
+    <label >Group:</label>
+    <input type="text" id="Group" name="academic">
+    <br>
+    </div>
+
+  <script type="module">
+     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+    import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+
+    // Configuración de Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBjh2WHyZZ1WaB2LVfMdq84BkC5mI00dEw",
+    authDomain: "activityloader.firebaseapp.com",
+    projectId: "activityloader",
+    storageBucket: "activityloader.appspot.com",
+    messagingSenderId: "604488222680",
+    appId: "1:604488222680:web:b04293ab53ef978162d4ad",
+    measurementId: "G-R6YNV1JSNY"
+    };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.exportToCSV = async function() {
+      try {
+        // Obtener datos de una colección
+        const querySnapshot = await getDocs(collection(db, 'Activities'));
+        const data = querySnapshot.docs.map(doc => doc.data());
+        var Act_name=document.getElementById("Activity_Name").value;
+        var Group=document.getElementById("Group").value;
+
+
+        if (data.length === 0) {
+          alert('No hay datos para exportar.');
+          return;
+        }
+
+        // Convertir datos a CSV
+        const csvRows = [];
+        const headers = Array.from(new Set(data.flatMap(doc => Object.keys(doc))));
+        csvRows.push(headers.join(','));
+
+        data.forEach(row => {
+          const values = headers.map(header => JSON.stringify(row[header] || ''));
+          csvRows.push(values.join(','));
+        });
+
+        // Crear un archivo CSV y descargarlo
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = Act_name+Group+'.CSV';
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error al exportar los datos:', error);
+      }
+    }
+    
+  </script>
+ 
+
+  <button onclick="exportToCSV()">Exportar a CSV</button>
+</body>
+</html>
